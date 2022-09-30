@@ -46,7 +46,6 @@
         start()
         async function start() {
             const busses = await getBusPos()
-            console.log(busses)
             for (let entity of busses.entity) {
                 const marker = L.marker([entity.vehicle.position.latitude, entity.vehicle
                     .position.longitude
