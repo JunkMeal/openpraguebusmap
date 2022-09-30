@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OpenPragueBusMap</title>
+    <script src="https://unpkg.com/leaflet@1.9.1/dist/leaflet.js"
+        integrity="sha256-NDI0K41gVbWqfkkaHj15IzU7PtMoelkzyKp8TOaFQ3s=" crossorigin=""></script>
+    <script src="https://unpkg.com/gtfs-realtime-pbf-js-module@1.0.0/gtfs-realtime.browser.proto.js"></script>
+    <script src="https://unpkg.com/pbf@3.0.5/dist/pbf.js"></script>
+    <script src="https://unpkg.com/leaflet.markercluster@1.4.1/dist/leaflet.markercluster.js"></script>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.4.1/dist/MarkerCluster.Default.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.1/dist/leaflet.css"
+        integrity="sha256-sA+zWATbFveLLNqWO2gtiw3HL/lh1giY/Inf1BJ0z14=" crossorigin="" />
+
+</head>
+<style>
+    body {
+        padding: 0;
+        margin: 0;
+    }
+
+    html,
+    body,
+    #map {
+        height: 100%;
+        width: 100%;
+    }
+</style>
+
+<body>
+
+    <div id="map"></div>
+
+    <script>
+        const map = L.map('map').setView([50.0877, 14.4211], 13);
+        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '© OpenStreetMap'
+        }).addTo(map);
+        const markers = L.markerClusterGroup();
+        start()
+        async function start() {
+            const busses = await getBusPos()
+            console.log(busses)
+            for (let entity of busses.entity) {
+                const marker = L.marker([entity.vehicle.position.latitude, entity.vehicle
+                    .position.longitude
+                ])
+                marker.bindPopup(`<b>Linka:</b> ${entity.vehicle.trip.route_id.substring(1)}`)
+                markers.addLayer(marker);
+            }
+            map.addLayer(markers);
+            const startInterval = setInterval(async () => {
+                if (new Date().getSeconds() == 31) {
+                    console.log("yeet")
+                    markers.clearLayers()
+                    const busses = await getBusPos()
+                    for (let entity of busses.entity) {
+                        const marker = L.marker([entity.vehicle.position.latitude, entity.vehicle
+                            .position.longitude
+                        ])
+                        marker.bindPopup(`<b>Linka:</b> ${entity.vehicle.trip.route_id.substring(1)}`)
+                        markers.addLayer(marker);
+                    }
+                }
+            }, 1000)
+        }
+        async function getBusPos() {
+            let response = await fetch("https://api.golemio.cz/v2/vehiclepositions/gtfsrt/vehicle_positions.pb");
+            const bufferRes = await response.arrayBuffer();
+            const pbf = new Pbf(new Uint8Array(bufferRes));
+            return FeedMessage.read(pbf)
+        }
+    </script>
+</body>
+
+</html>
