@@ -56,8 +56,9 @@
             }
             map.addLayer(markers);
             const startInterval = setInterval(async () => {
-                if (new Date().getSeconds() == 31) {
-                    console.log("yeet")
+                const sekundy = new Date().getSeconds() 
+                if (sekundy == 31 || sekundy == 1) {
+                    console.log("refresh")
                     markers.clearLayers()
                     const busses = await getBusPos()
                     for (let entity of busses.entity) {
